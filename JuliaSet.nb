@@ -1,0 +1,222 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 12.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      8944,        214]
+NotebookOptionsPosition[      8071,        192]
+NotebookOutlinePosition[      8488,        209]
+CellTagsIndexPosition[      8445,        206]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{"Needs", "[", "\"\<CUDALink`\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.844844973873865*^9, 3.844844980138998*^9}},
+ CellLabel->"In[1]:=",ExpressionUUID->"8c09bf8b-778e-459b-a08e-74713d5f8abc"],
+
+Cell[BoxData[
+ RowBox[{"<<", "CUDALink`"}]], "Input",
+ CellEvaluationLanguage->"Python",
+ CellChangeTimes->{{3.8448449867076893`*^9, 3.844844999572894*^9}},
+ CellLabel->"In[13]:=",ExpressionUUID->"e1ef4294-ff2f-44a9-af97-ba3030daf355"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+  "code", "=", 
+   "\"\<\n__global__ void julia_kernel(Real_t * set, mint width, mint height, \
+Real_t cx, Real_t cy) {\n\tint xIndex = threadIdx.x + blockIdx.x*blockDim.x;\n\
+\tint yIndex = threadIdx.y + blockIdx.y*blockDim.y;\n   int ii;\n   Real_t x \
+= ZOOM_LEVEL*(width/2 - xIndex);\n   Real_t y = ZOOM_LEVEL*(height/2 - \
+yIndex);\n   Real_t tmp;\n   Real_t c;\n   if (xIndex < width && yIndex < \
+height) {\n       for (ii = 0; ii < MAX_ITERATIONS && x*x + y*y < BAILOUT; \
+ii++) {\n\t\t\ttmp = x*x - y*y + cx;\n\t\t\ty = 2*x*y + cy;\n\t\t\tx = tmp;\n\
+\t\t}\n\t\tc = logf(static_cast<Real_t>(0.1) + sqrtf(x*x + y*y));\n\t\t\
+set[xIndex + yIndex*width] = c;\n    }\n}\n\>\""}], ";"}]], "Input",
+ CellChangeTimes->{{3.8445526751700835`*^9, 3.8445526751720796`*^9}, {
+  3.844552827408572*^9, 3.844552914108714*^9}, {3.8445529678994875`*^9, 
+  3.844552974636688*^9}, {3.8445530280667486`*^9, 3.844553028955787*^9}},
+ CellLabel->"In[2]:=",ExpressionUUID->"b995060f-47ba-4c1f-ae12-c92771e6886d"],
+
+Cell[BoxData[
+ RowBox[{"\n", 
+  RowBox[{
+   RowBox[{
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"width", ",", "height"}], "}"}], "=", 
+     RowBox[{"{", 
+      RowBox[{"512", ",", "512"}], "}"}]}], ";"}], "\n", 
+   RowBox[{
+    RowBox[{"jset", "=", 
+     RowBox[{"CUDAMemoryAllocate", "[", 
+      RowBox[{"Real", ",", 
+       RowBox[{"{", 
+        RowBox[{"height", ",", "width"}], "}"}]}], "]"}]}], ";"}], "\n", 
+   RowBox[{
+    RowBox[{"JuliaCalculate", "=", 
+     RowBox[{"CUDAFunctionLoad", "[", 
+      RowBox[{"code", ",", "\"\<julia_kernel\>\"", ",", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{"_Real", ",", "_", ",", "\"\<Output\>\""}], "}"}], ",", 
+         "_Integer", ",", "_Integer", ",", "_Real", ",", "_Real"}], "}"}], 
+       ",", 
+       RowBox[{"{", 
+        RowBox[{"16", ",", "16"}], "}"}], ",", 
+       RowBox[{"\"\<Defines\>\"", "->", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"\"\<MAX_ITERATIONS\>\"", "->", "10"}], ",", 
+          RowBox[{"\"\<ZOOM_LEVEL\>\"", "->", "\"\<0.002\>\""}], ",", 
+          RowBox[{"\"\<BAILOUT\>\"", "->", "\"\<4.0\>\""}]}], "}"}]}]}], 
+      "]"}]}], ";"}]}]}]], "Input",
+ CellChangeTimes->{{3.844552783161942*^9, 3.844552813342597*^9}, {
+  3.8445538071690474`*^9, 3.844553851869711*^9}, {3.844553947651454*^9, 
+  3.8445540139199395`*^9}, {3.84455412451518*^9, 3.8445541515841436`*^9}, {
+  3.8445542270297747`*^9, 3.8445542272814627`*^9}, {3.844554408527076*^9, 
+  3.844554484980904*^9}},
+ CellLabel->"In[3]:=",ExpressionUUID->"43bf215d-33dc-4c3e-ba96-4bbf0cb1feef"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Manipulate", "[", "\n", " ", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"JuliaCalculate", "[", 
+     RowBox[{"jset", ",", " ", "width", ",", " ", "height", ",", " ", 
+      RowBox[{"c", "[", 
+       RowBox[{"[", "1", "]"}], "]"}], ",", " ", "\n", "  ", 
+      RowBox[{"c", "[", 
+       RowBox[{"[", "2", "]"}], "]"}], ",", " ", 
+      RowBox[{"{", 
+       RowBox[{"width", ",", " ", "height"}], "}"}]}], "]"}], ";", "\n", " ", 
+    RowBox[{"ReliefPlot", "[", 
+     RowBox[{
+      RowBox[{"CUDAMemoryGet", "[", "jset", "]"}], ",", " ", "\n", "  ", 
+      RowBox[{"DataRange", " ", "->", " ", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"-", "2.0"}], ",", " ", "2.0"}], "}"}], ",", " ", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"-", "2.0"}], ",", " ", "2.0"}], "}"}]}], "}"}]}], ",", 
+      " ", 
+      RowBox[{"ImageSize", " ", "->", " ", 
+       RowBox[{"{", "512", "}"}]}], ",", " ", "\n", "  ", 
+      RowBox[{"ColorFunction", "\[Rule]", "\"\<TemperatureMap\>\""}]}], 
+     "]"}]}], ",", "\n", " ", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"c", ",", " ", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", " ", "1"}], "}"}]}], "}"}], ",", " ", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"-", "2"}], ",", " ", 
+       RowBox[{"-", "2"}]}], "}"}], ",", " ", 
+     RowBox[{"{", 
+      RowBox[{"2", ",", " ", "2"}], "}"}], ",", " ", "Locator"}], "}"}]}], 
+  "]"}]], "Input",
+ CellChangeTimes->{{3.8445526781277885`*^9, 3.8445527069484854`*^9}, {
+  3.844552755262438*^9, 3.844552755860792*^9}, {3.8445539674919033`*^9, 
+  3.8445539678874545`*^9}, {3.844554061685704*^9, 3.8445540783187947`*^9}, {
+  3.8445541551625047`*^9, 3.844554170756982*^9}, {3.844554212790678*^9, 
+  3.8445542129314904`*^9}, {3.8445544278908887`*^9, 3.8445544312595415`*^9}},
+ CellLabel->
+  "In[168]:=",ExpressionUUID->"79d6d2e6-9d97-43d8-835f-f195cf3dae15"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   DynamicModuleBox[{$CellContext`c$$ = {-0.482, -0.7150000000000001}, 
+    Typeset`show$$ = True, Typeset`bookmarkList$$ = {}, 
+    Typeset`bookmarkMode$$ = "Menu", Typeset`animator$$, Typeset`animvar$$ = 
+    1, Typeset`name$$ = "\"\:65e0\:6807\:9898\"", Typeset`specs$$ = {{{
+       Hold[$CellContext`c$$], {0, 1}}, {-2, -2}, {2, 2}}}, Typeset`size$$ = {
+    768., {380., 387.}}, Typeset`update$$ = 0, Typeset`initDone$$, 
+    Typeset`skipInitDone$$ = True}, 
+    DynamicBox[Manipulate`ManipulateBoxes[
+     1, StandardForm, "Variables" :> {$CellContext`c$$ = {0, 1}}, 
+      "ControllerVariables" :> {}, 
+      "OtherVariables" :> {
+       Typeset`show$$, Typeset`bookmarkList$$, Typeset`bookmarkMode$$, 
+        Typeset`animator$$, Typeset`animvar$$, Typeset`name$$, 
+        Typeset`specs$$, Typeset`size$$, Typeset`update$$, Typeset`initDone$$,
+         Typeset`skipInitDone$$}, 
+      "Body" :> ($CellContext`JuliaCalculate[$CellContext`jset, \
+$CellContext`width, $CellContext`height, 
+         Part[$CellContext`c$$, 1], 
+         Part[$CellContext`c$$, 
+          2], {$CellContext`width, $CellContext`height}]; ReliefPlot[
+         CUDALink`CUDAMemoryGet[$CellContext`jset], 
+         DataRange -> {{-2., 2.}, {-2., 2.}}, ImageSize -> {512}, 
+         ColorFunction -> "TemperatureMap"]), 
+      "Specifications" :> {{{$CellContext`c$$, {0, 1}}, {-2, -2}, {2, 2}, 
+         ControlType -> Locator}}, "Options" :> {}, "DefaultOptions" :> {}],
+     ImageSizeCache->{852., {432., 441.}},
+     SingleEvaluation->True],
+    Deinitialization:>None,
+    DynamicModuleValues:>{},
+    SynchronousInitialization->True,
+    UndoTrackedVariables:>{Typeset`show$$, Typeset`bookmarkMode$$},
+    UnsavedVariables:>{Typeset`initDone$$},
+    UntrackedVariables:>{Typeset`size$$}], "Manipulate",
+   Deployed->True,
+   StripOnInput->False],
+  Manipulate`InterpretManipulate[1]]], "Output",
+ CellChangeTimes->{{3.844552685278366*^9, 3.8445527564435997`*^9}, 
+   3.8445528043228455`*^9, 3.8445528979999943`*^9, 3.844552984717389*^9, {
+   3.844553815150445*^9, 3.844553841950616*^9}, {3.8445539782178397`*^9, 
+   3.8445540061788826`*^9}, {3.8445540633964562`*^9, 
+   3.8445540787121906`*^9}, {3.8445541321665883`*^9, 
+   3.8445541751401415`*^9}, {3.844554213561204*^9, 3.844554235293785*^9}, {
+   3.844554419891974*^9, 3.8445544571766386`*^9}},
+ CellLabel->
+  "Out[168]=",ExpressionUUID->"20bc4715-038a-41c5-801b-451b668dc950"]
+}, Open  ]]
+},
+WindowSize->{1904, 1503},
+WindowMargins->{{1920, Automatic}, {Automatic, 482}},
+FrontEndVersion->"12.3 for Microsoft Windows (64-bit) (2021\:5e747\:670823\
+\:65e5)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"8d051030-7a54-44e0-824d-22a4a73ec10c"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 218, 3, 71, "Input",ExpressionUUID->"8c09bf8b-778e-459b-a08e-74713d5f8abc"],
+Cell[779, 25, 235, 4, 46, "Input",ExpressionUUID->"e1ef4294-ff2f-44a9-af97-ba3030daf355"],
+Cell[1017, 31, 1032, 16, 636, "Input",ExpressionUUID->"b995060f-47ba-4c1f-ae12-c92771e6886d"],
+Cell[2052, 49, 1575, 39, 219, "Input",ExpressionUUID->"43bf215d-33dc-4c3e-ba96-4bbf0cb1feef"],
+Cell[CellGroupData[{
+Cell[3652, 92, 1948, 48, 350, "Input",ExpressionUUID->"79d6d2e6-9d97-43d8-835f-f195cf3dae15"],
+Cell[5603, 142, 2452, 47, 901, "Output",ExpressionUUID->"20bc4715-038a-41c5-801b-451b668dc950"]
+}, Open  ]]
+}
+]
+*)
+
